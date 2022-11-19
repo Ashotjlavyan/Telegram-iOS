@@ -8859,7 +8859,21 @@ public final class PeerInfoScreenImpl: ViewController, PeerInfoScreen, KeyShortc
     }
     
     override public func loadDisplayNode() {
-        self.displayNode = PeerInfoScreenNode(controller: self, context: self.context, peerId: self.peerId, avatarInitiallyExpanded: self.avatarInitiallyExpanded, isOpenedFromChat: self.isOpenedFromChat, nearbyPeerDistance: self.nearbyPeerDistance, reactionSourceMessageId: self.reactionSourceMessageId, callMessages: self.callMessages, isSettings: self.isSettings, hintGroupInCommon: self.hintGroupInCommon, requestsContext: self.requestsContext, chatLocation: self.chatLocation, chatLocationContextHolder: self.chatLocationContextHolder)
+        self.displayNode = PeerInfoScreenNode(
+            controller: self,
+            context: self.context,
+            peerId: self.peerId,
+            avatarInitiallyExpanded: self.avatarInitiallyExpanded,
+            isOpenedFromChat: self.isOpenedFromChat,
+            nearbyPeerDistance: self.nearbyPeerDistance,
+            reactionSourceMessageId: self.reactionSourceMessageId,
+            callMessages: self.callMessages,
+            isSettings: self.isSettings,
+            hintGroupInCommon: self.hintGroupInCommon,
+            requestsContext: self.requestsContext,
+            chatLocation: self.chatLocation,
+            chatLocationContextHolder: self.chatLocationContextHolder
+        )
         self.controllerNode.accountsAndPeers.set(self.accountsAndPeers.get() |> map { $0.1 })
         self.controllerNode.activeSessionsContextAndCount.set(self.activeSessionsContextAndCount.get())
         self.cachedDataPromise.set(self.controllerNode.cachedDataPromise.get())

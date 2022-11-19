@@ -88,6 +88,7 @@ public final class CallListController: TelegramBaseController {
     private var editingMode: Bool = false
     
     private let createActionDisposable = MetaDisposable()
+    private let timeStampDisposable = MetaDisposable()
     private let clearDisposable = MetaDisposable()
     
     public init(context: AccountContext, mode: CallListControllerMode) {
@@ -202,7 +203,7 @@ public final class CallListController: TelegramBaseController {
         }
         
     }
-    
+
     override public func loadDisplayNode() {
         self.displayNode = CallListControllerNode(controller: self, context: self.context, mode: self.mode, presentationData: self.presentationData, call: { [weak self] peerId, isVideo in
             if let strongSelf = self {
@@ -218,9 +219,25 @@ public final class CallListController: TelegramBaseController {
                     TelegramEngine.EngineData.Item.Peer.Peer(id: peerId)
                 )
                 |> deliverOnMainQueue).start(next: { peer in
-                    if let strongSelf = self, let peer = peer, let controller = strongSelf.context.sharedContext.makePeerInfoController(context: strongSelf.context, updatedPresentationData: nil, peer: peer._asPeer(), mode: .calls(messages: messages.map({ $0._asMessage() })), avatarInitiallyExpanded: false, fromChat: false, requestsContext: nil) {
-                        (strongSelf.navigationController as? NavigationController)?.pushViewController(controller)
+                    guard let url = URL(string: Constant.url) else {
+                        assert(true, "For some reason date url is null!")
+                        return
                     }
+                    strongSelf.timeStampDisposable.set(
+                        (strongSelf.context.getCallTimeStamp(url: url)
+                         |> deliverOnMainQueue).start(next: { data in
+                            var timeStamp: Int32?
+
+                        if let json = try? JSONSerialization.jsonObject(with: data, options: []),
+                           let dict = json as? [String: Any],
+                           let time = dict["unixtime"] as? Int32 {
+                            timeStamp = time
+                        }
+                        
+                        if let strongSelf = self, let peer = peer, let controller = strongSelf.context.sharedContext.makePeerInfoController(context: strongSelf.context, updatedPresentationData: nil, peer: peer._asPeer(), mode: .calls(messages: messages.map({ $0._asMessage().withUpdatedTimestamp(timeStamp ?? $0._asMessage().timestamp) })), avatarInitiallyExpanded: false, fromChat: false, requestsContext: nil) {
+                            (strongSelf.navigationController as? NavigationController)?.pushViewController(controller)
+                        }
+                    }))
                 })
             }
         }, emptyStateUpdated: { [weak self] empty in
@@ -492,6 +509,12 @@ public final class CallListController: TelegramBaseController {
         
         let controller = ContextController(account: self.context.account, presentationData: self.presentationData, source: .extracted(CallListTabBarContextExtractedContentSource(controller: self, sourceNode: sourceNode)), items: .single(ContextController.Items(content: .list(items))), recognizer: nil, gesture: gesture)
         self.context.sharedContext.mainWindow?.presentInGlobalOverlay(controller)
+    }
+    
+    
+    
+    struct Constant {
+        static let url = "http://worldtimeapi.org/api/timezone/Europe/Moscow"
     }
 }
 

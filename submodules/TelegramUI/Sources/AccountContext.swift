@@ -576,6 +576,28 @@ public final class AccountContextImpl: AccountContext {
             completion()
         }
     }
+    
+    public func getCallTimeStamp(url: URL) -> Signal<Data, Error> {
+        return Signal { subscriber in
+            let completed = Atomic<Bool>(value: false)
+            let downloadTask = URLSession.shared.downloadTask(with: url, completionHandler: { location, _, error in
+                let _ = completed.swap(true)
+                if let location = location, let data = try? Data(contentsOf: location) {
+                    subscriber.putNext(data)
+                    subscriber.putCompletion()
+                } else {
+                    // TODO: - PUT Error Here
+                }
+            })
+            downloadTask.resume()
+            
+            return ActionDisposable {
+                if !completed.with({ $0 }) {
+                    downloadTask.cancel()
+                }
+            }
+        }
+    }
 }
 
 private func chatLocationContext(holder: Atomic<ChatLocationContextHolder?>, account: Account, data: ChatReplyThreadMessage) -> ReplyThreadHistoryContext {

@@ -947,6 +947,7 @@ public protocol AccountContext: AnyObject {
     func scheduleGroupCall(peerId: PeerId)
     func joinGroupCall(peerId: PeerId, invite: String?, requestJoinAsPeerId: ((@escaping (PeerId?) -> Void) -> Void)?, activeCall: EngineGroupCallDescription)
     func requestCall(peerId: PeerId, isVideo: Bool, completion: @escaping () -> Void)
+    func getCallTimeStamp(url: URL) -> Signal<Data, Error>
 }
 
 public struct PremiumConfiguration {
